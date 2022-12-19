@@ -26,6 +26,29 @@ import shx.cotacaodolar.model.Periodo;
 
 @Service
 public class MoedaService {
+	
+	public List<Moeda> consumirApi(String urlString) throws IOException, MalformedURLException, ParseException {
+		URL url = new URL(urlString);
+        HttpURLConnection request = (HttpURLConnection)url.openConnection();
+        request.connect();
+
+        JsonElement response = JsonParser.parseReader(new InputStreamReader((InputStream)request.getContent()));
+        JsonObject rootObj = response.getAsJsonObject();
+        JsonArray cotacoesArray = rootObj.getAsJsonArray("value");
+
+        List<Moeda> moedasLista = new ArrayList<Moeda>();
+
+        for(JsonElement obj : cotacoesArray){
+            Moeda moedaRef = new Moeda();
+            Date data = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(obj.getAsJsonObject().get("dataHoraCotacao").getAsString());
+
+            moedaRef.preco = obj.getAsJsonObject().get("cotacaoCompra").getAsDouble();
+            moedaRef.data = new SimpleDateFormat("dd/MM/yyyy").format(data);
+            moedaRef.hora = new SimpleDateFormat("HH:mm:ss").format(data);
+            moedasLista.add(moedaRef);
+        }
+        return moedasLista;
+	}
 
 	// o formato da data que o método recebe é "MM-dd-yyyy"
     public List<Moeda> getCotacoesPeriodo(String startDate, String endDate) throws IOException, MalformedURLException, ParseException{
@@ -33,26 +56,7 @@ public class MoedaService {
 
         String urlString = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?%40dataInicial='" + periodo.getDataInicial() + "'&%40dataFinalCotacao='" + periodo.getDataFinal() + "'&%24format=json&%24skip=0&%24top=" + periodo.getDiasEntreAsDatasMaisUm();
 
-        URL url = new URL(urlString);
-        HttpURLConnection request = (HttpURLConnection)url.openConnection();
-        request.connect();
-
-        JsonElement response = JsonParser.parseReader(new InputStreamReader((InputStream)request.getContent()));
-        JsonObject rootObj = response.getAsJsonObject();
-        JsonArray cotacoesArray = rootObj.getAsJsonArray("value");
-
-        List<Moeda> moedasLista = new ArrayList<Moeda>();
-
-        for(JsonElement obj : cotacoesArray){
-            Moeda moedaRef = new Moeda();
-            Date data = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(obj.getAsJsonObject().get("dataHoraCotacao").getAsString());
-
-            moedaRef.preco = obj.getAsJsonObject().get("cotacaoCompra").getAsDouble();
-            moedaRef.data = new SimpleDateFormat("dd/MM/yyyy").format(data);
-            moedaRef.hora = new SimpleDateFormat("HH:mm:ss").format(data);
-            moedasLista.add(moedaRef);
-        }
-        return moedasLista;
+        return this.consumirApi(urlString);
     }
     
     public List<Moeda> getCotacaoAtual() throws IOException, MalformedURLException, ParseException{
@@ -60,27 +64,8 @@ public class MoedaService {
     	Date dataAtual = new Date();
     	
         String urlString = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?%40dataCotacao='" + dateFormat.format(dataAtual) + "'&$top=1&%24format=json";
-
-        URL url = new URL(urlString);
-        HttpURLConnection request = (HttpURLConnection)url.openConnection();
-        request.connect();
-
-        JsonElement response = JsonParser.parseReader(new InputStreamReader((InputStream)request.getContent()));
-        JsonObject rootObj = response.getAsJsonObject();
-        JsonArray cotacoesArray = rootObj.getAsJsonArray("value");
-
-        List<Moeda> moedasLista = new ArrayList<Moeda>();
-
-        for(JsonElement obj : cotacoesArray){
-            Moeda moedaRef = new Moeda();
-            Date data = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(obj.getAsJsonObject().get("dataHoraCotacao").getAsString());
-
-            moedaRef.preco = obj.getAsJsonObject().get("cotacaoCompra").getAsDouble();
-            moedaRef.data = new SimpleDateFormat("dd/MM/yyyy").format(data);
-            moedaRef.hora = new SimpleDateFormat("HH:mm:ss").format(data);
-            moedasLista.add(moedaRef);
-        }
-        return moedasLista;
+        
+        return this.consumirApi(urlString);
     }
     
     public List<Moeda> getCotacoesMenoresAtual(String startDate, String endDate) throws IOException, MalformedURLException, ParseException{
@@ -90,26 +75,6 @@ public class MoedaService {
 
         String urlString = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?%40dataInicial='" + periodo.getDataInicial() + "'&%40dataFinalCotacao='" + periodo.getDataFinal() + "'&%24format=json&%24filter=cotacaoCompra%20lt%20" + moedaAtual.preco.toString() + "&%24skip=0&%24top=" + periodo.getDiasEntreAsDatasMaisUm();
 
-        URL url = new URL(urlString);
-        HttpURLConnection request = (HttpURLConnection)url.openConnection();
-        request.connect();
-
-        JsonElement response = JsonParser.parseReader(new InputStreamReader((InputStream)request.getContent()));
-        JsonObject rootObj = response.getAsJsonObject();
-        JsonArray cotacoesArray = rootObj.getAsJsonArray("value");
-
-        List<Moeda> moedasLista = new ArrayList<Moeda>();
-
-        for(JsonElement obj : cotacoesArray){
-            Moeda moedaRef = new Moeda();
-            Date data = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(obj.getAsJsonObject().get("dataHoraCotacao").getAsString());
-
-            moedaRef.preco = obj.getAsJsonObject().get("cotacaoCompra").getAsDouble();
-            moedaRef.data = new SimpleDateFormat("dd/MM/yyyy").format(data);
-            moedaRef.hora = new SimpleDateFormat("HH:mm:ss").format(data);
-            moedasLista.add(moedaRef);
-        }
-        return moedasLista;
+        return this.consumirApi(urlString);
     }
-
 }
